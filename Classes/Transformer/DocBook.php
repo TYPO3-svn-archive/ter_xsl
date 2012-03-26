@@ -170,7 +170,7 @@ class Tx_TerXsl_Transformer_DocBook extends t3lib_svbase {
 		$this->resetInformation();
 		$this->setInformation('abstract', $abstract);
 		$this->setInformation('documentLanguage', $documentLanguage);
-		
+
 		return TRUE;
 	}
 
@@ -188,11 +188,23 @@ class Tx_TerXsl_Transformer_DocBook extends t3lib_svbase {
 		$docBookDom = new DomDocument();
 		$docBookDom->load($documentDir . 'docbook/manual.xml');
 
-		if (!$docBookDom) return FALSE;
+		if (!$docBookDom) {
+			return FALSE;
+		}
+
+			// Avoid that relative path settings within the xsl files break
+		chdir(t3lib_extMgm::extPath('ter_xsl') . 'Resources/Private/XSL/Docbook/xhtml/');
 
 			// Transform the DocBook manual to XHTML into various files, each containing one chapter:
 		$xsl = new DomDocument();
 		$xsl->load(t3lib_extMgm::extPath ('ter_xsl') . 'Resources/Private/XSL/Docbook/xhtml/chunk.xsl');
+
+			// Workaround for https://bugs.php.net/bug.php?id=54446
+		if (version_compare(PHP_VERSION, '5.4', "<")) {
+			ini_set("xsl.security_prefs", 0);
+		} else {
+			$xsl->setSecurityPreferences(0);
+		}
 
 		$xsltProc = new XsltProcessor();
 		$xsltProc->setParameter ('','base.dir', $documentDir . 'html_online/');
@@ -206,6 +218,7 @@ class Tx_TerXsl_Transformer_DocBook extends t3lib_svbase {
 		}
 
 		$oldErrorLevel = error_reporting();
+		// set_error_handler(function ($int, $str) { Tx_TerXsl_Utility_Cli::log( $int . ':' . $str );  });
 		error_reporting(E_ERROR);
 		$xsl = $xsltProc->importStylesheet($xsl);
 		$xsltProc->transformToDoc($docBookDom);
