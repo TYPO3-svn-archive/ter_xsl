@@ -155,7 +155,7 @@ class Tx_TerXsl_Transformer_DocBook extends t3lib_svbase {
 				Tx_TerXsl_Utility_Cli::log('   * Warning: Could not guess language because textLang service was not available');
 				$errorCodes[] = self::ERRORCODE_COULDNOTGUESSDOCUMENTLANGUAGENOTEXTLANGSERVICEAVAILABLE;
 				$metaXML = simplexml_load_file($documentDir . 'sxw/meta.xml');
-				$DCLanguageArr = $metaXML->xpath('//dc:language');
+				$DCLanguageArr = $metaXML ? $metaXML->xpath('//dc:language') : '';
 				$documentLanguage = is_array($DCLanguageArr) ? strtolower(substr($DCLanguageArr[0], 0, 2)) : '';
 			}
 		} else {
